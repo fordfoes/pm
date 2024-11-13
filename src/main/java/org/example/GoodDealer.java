@@ -11,10 +11,13 @@ public class GoodDealer implements Dealer { //создаем класс хоро
     private int currentCardIndex; //это переменная которая хранит текущий индекс карты в колоде
 
     public GoodDealer() { //это конструктор
-        this.deck = createDeck(); //здесь вызвается метод создания колоды карт и присваивается переменной
+        this.deck = createDeck(); //здесь создается колода карт и присваивается переменной
         this.currentCardIndex = 0; //индекс списка начинается с 0
+       // System.out.println(deck.size());
+       // System.out.println(deck);
         Collections.shuffle(deck); //это метод класса коллекций который перемешивает элементы в списке, в данном случаем колоду карт
-    }
+       // System.out.println(deck);
+    } //перемешиваем колоду и присваиваем переменной
 
     private List<String> createDeck() { //метод возвращает список строк
         List<String> deck = new ArrayList<>(); //создаем объект класса ArrayList<>(), который будет хранить карты
@@ -27,20 +30,20 @@ public class GoodDealer implements Dealer { //создаем класс хоро
             }
         }
         return deck; //возвращаем колоду
-    }
+    } //создаем колоду
 
     private String dealCard() { //это метод раздачи колоды
         if (currentCardIndex >= deck.size()) { //проверяем достигнут ли конец колоды
             throw new IllegalStateException("Закончились карты в колоде");
         }
         return deck.get(currentCardIndex++); //возвращаем карту по текущему индексу и увеличиваем на 1
-    }
+    } //раздаем карту
 
   //переопределяем метод интерфейса раздача карт игрокам
     @Override
     public Board dealCardsToPlayers() {
-        String playerOne = dealCard() + dealCard(); // Раздаем две карты первому игроку
-        String playerTwo = dealCard() + dealCard(); // Раздаем две карты второму игроку
+        String playerOne = dealCard() + "," + dealCard(); // Раздаем две карты первому игроку
+        String playerTwo = dealCard() + "," + dealCard(); // Раздаем две карты второму игроку
 
         // Убедимся, что карты уникальны
         if (playerOne.equals(playerTwo)) {
@@ -48,11 +51,11 @@ public class GoodDealer implements Dealer { //создаем класс хоро
         }
 
         return new Board(playerOne, playerTwo, null, null, null);
-    }
+    } //раздаем 2 карты игрокам и получаем доску
 
     @Override //переопределяем метод интерфейса раздача 3 карт общих для игроков
     public Board dealFlop(Board board) {
-        String flop = dealCard() + dealCard() + dealCard(); //раздача 3 карт
+        String flop = dealCard()+"," + dealCard()+"," + dealCard(); //раздача 3 карт
         return new Board(board.getPlayerOne(), board.getPlayerTwo(), flop, null, null); //возвращаем на игровую доску уже разданные карты игрока и флоп
     }
 
@@ -73,13 +76,16 @@ public class GoodDealer implements Dealer { //создаем класс хоро
         validateBoard(board);
 
         List<String> playerOneCards = new ArrayList<>();
-        Collections.addAll(playerOneCards, board.getPlayerOne().split("(?<=\\G.{2})"));
+        Collections.addAll(playerOneCards, board.getPlayerOne().split(","));
+        //System.out.println(playerOneCards);
+
         List<String> playerTwoCards = new ArrayList<>();
-        Collections.addAll(playerTwoCards, board.getPlayerTwo().split("(?<=\\G.{2})"));
+        Collections.addAll(playerTwoCards, board.getPlayerTwo().split(","));
+        //System.out.println(playerTwoCards);
 
         List<String> communityCards = new ArrayList<>();
         if (board.getFlop() != null) {
-            Collections.addAll(communityCards, board.getFlop().split("(?<=\\G.{2})"));
+            Collections.addAll(communityCards, board.getFlop().split(","));
         }
         if (board.getTurn() != null) {
             communityCards.add(board.getTurn());
@@ -104,16 +110,16 @@ public class GoodDealer implements Dealer { //создаем класс хоро
 
     private void validateBoard(Board board) {
         HashSet<String> allCards = new HashSet<>();
-
+        List<String> allCardsControl = new ArrayList<>();
         // Разделяем карты игрока 1
-        Collections.addAll(allCards, board.getPlayerOne().split("(?<=\\G(?:\\d{1,2}|[JQKA])[CDHS])"));
+        Collections.addAll(allCards, board.getPlayerOne().split(","));
 
         // Разделяем карты игрока 2
-        Collections.addAll(allCards, board.getPlayerTwo().split("(?<=\\G(?:\\d{1,2}|[JQKA])[CDHS])"));
+        Collections.addAll(allCards, board.getPlayerTwo().split(","));
 
         // Разделяем карты флопа, если они есть
         if (board.getFlop() != null) {
-            Collections.addAll(allCards, board.getFlop().split("(?<=\\G(?:\\d{1,2}|[JQKA])[CDHS])"));
+            Collections.addAll(allCards, board.getFlop().split(","));
         }
 
         // Добавляем карту тёрна, если она есть
@@ -126,11 +132,32 @@ public class GoodDealer implements Dealer { //создаем класс хоро
             allCards.add(board.getRiver());
         }
 
-        // Проверка на дубликаты
-        int expectedCardCount = (board.getPlayerOne().length() + board.getPlayerTwo().length()) / 2 +
-                (board.getFlop() != null ? 3 : 0) +
-                (board.getTurn() != null ? 1 : 0) +
-                (board.getRiver() != null ? 1 : 0);
+
+        Collections.addAll(allCardsControl, board.getPlayerOne().split(","));
+
+        // Разделяем карты игрока 2
+        Collections.addAll(allCardsControl, board.getPlayerTwo().split(","));
+
+        // Разделяем карты флопа, если они есть
+        if (board.getFlop() != null) {
+            Collections.addAll(allCardsControl, board.getFlop().split(","));
+        }
+
+        // Добавляем карту тёрна, если она есть
+        if (board.getTurn() != null) {
+            allCardsControl.add(board.getTurn());
+        }
+
+        // Добавляем карту ривера, если она есть
+        if (board.getRiver() != null) {
+            allCardsControl.add(board.getRiver());
+        }
+
+        //System.out.println(allCardsControl);
+
+        int expectedCardCount = allCardsControl.size();
+
+        //System.out.println(allCards);
 
         if (allCards.size() != expectedCardCount) {
             throw new InvalidPokerBoardException("Найдены дубликаты на игровом столе или неверное количество карт");

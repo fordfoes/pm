@@ -1,7 +1,6 @@
 package org.example;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Hand implements Comparable<Hand> {
     private List<String> cards;
@@ -49,8 +48,20 @@ public class Hand implements Comparable<Hand> {
             suitCounts.put(suit, suitCounts.getOrDefault(suit, 0) + 1);
         }
 
-        boolean isFlush = suitCounts.values().stream().anyMatch(count -> count >= 5);
-        List<Integer> counts = rankCounts.values().stream().map(List::size).sorted(Comparator.reverseOrder()).collect(Collectors.toList());
+        boolean isFlush = false;
+        for (Integer count : suitCounts.values()) {
+            if (count >= 5) {
+                isFlush = true;
+                break;
+            }
+        }
+
+        List<Integer> counts = new ArrayList<>();
+        for (List<String> rankList : rankCounts.values()) {
+            counts.add(rankList.size());
+        }
+        Collections.sort(counts, Collections.reverseOrder());
+
         boolean isStraight = checkStraight();
 
         // Проверка на стрит и флеш
@@ -125,9 +136,9 @@ public class Hand implements Comparable<Hand> {
 
         // Сортируем ранги по убыванию и берем старшие карты в зависимости от комбинации
         List<Integer> highCards = new ArrayList<>();
-        List<Map.Entry<String, List<String>>> sortedEntries = rankCounts.entrySet().stream()
-                .sorted((a, b) -> getRank(b.getKey()).compareTo(getRank(a.getKey())))
-                .collect(Collectors.toList());
+        List<Map.Entry<String, List<String>>> sortedEntries = new ArrayList<>(rankCounts.entrySet());
+
+        sortedEntries.sort((a, b) -> getRank(b.getKey()).compareTo(getRank(a.getKey())));
 
         for (Map.Entry<String, List<String>> entry : sortedEntries) {
             highCards.add(getRank(entry.getKey())); // Добавляем ранг старшей карты
